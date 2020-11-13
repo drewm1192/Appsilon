@@ -28,14 +28,6 @@ distanceCalculator <- function(lat1, long1, lat2, long2){
 }
 
 
-dat <- read.csv(file.choose())
-nrow(dat)
-datSubset <- dat %>% filter(SHIPNAME == "KAROLI")
-
-distanceCalculator(datSubset[1,1],datSubset[1,2],datSubset[2,1],datSubset[2,2])
-
-
-
 #' Get Maximum Distance
 #'
 #' @param dataFrame A data frame
@@ -45,8 +37,14 @@ distanceCalculator(datSubset[1,1],datSubset[1,2],datSubset[2,1],datSubset[2,2])
 #' @export
 #'
 #' @examples
-findMaxDistance <- function(dataFrame){
+findMaxDistance <- function(dataFrame,name){
   
+  datSubset <- dataFrame %>% filter(SHIPNAME == name)
+  #Does filtering by name first really work? What if there are 
+  #two chunks of data for one name separated by a chunk for name 2,
+  #and then we remove name 2 chunk and we look at the last record of 
+  #name one followed by the first record of name one in the second chunk.
+  #This would NOT be the same trip.
   maxDistStartRow <- 0
   maxDistEndRow <- 0
   maxDistTime <- 0

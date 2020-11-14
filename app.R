@@ -131,7 +131,7 @@ server <- function(input, output,session) {
                         "<strong>","Distance: ","</strong>", maxDistance," M", "<br>",
                         "<strong>","Destination: ","</strong>",destinationPort
       )) %>% 
-      setView(lng = baseLon, lat = baseLat, zoom = 8)
+      setView(lng = baseLon, lat = baseLat, zoom = 9)
     
   })
   

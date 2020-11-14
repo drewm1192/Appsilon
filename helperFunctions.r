@@ -20,10 +20,12 @@ distanceCalculator <- function(lat1, long1, lat2, long2){
   longitude1 <- deg2rad(long1)
   latitude2 <- deg2rad(lat2)
   longitude2 <- deg2rad(long2)
+
   #Calculate distance using Great Circle Distance Equation * 1000 for meters
   distance <- EARTH_RADIUS * acos(sin(latitude1) * sin(latitude2) + 
                                     cos(latitude1) * cos(latitude2) * 
                                     cos(longitude1 - longitude2)) * 1000
+  #print(paste("DISTANCE: ",distance))
   return(distance)
 }
 
@@ -38,8 +40,8 @@ distanceCalculator <- function(lat1, long1, lat2, long2){
 #'
 #' @examples
 findMaxDistance <- function(dataFrame,name){
-  
-  datSubset <- dataFrame %>% filter(SHIPNAME == name)
+  datSubset <- dataFrame
+  datSubset <- datSubset %>% filter(datSubset$SHIPNAME == name)
   #Does filtering by name first really work? What if there are 
   #two chunks of data for one name separated by a chunk for name 2,
   #and then we remove name 2 chunk and we look at the last record of 
@@ -49,7 +51,7 @@ findMaxDistance <- function(dataFrame,name){
   maxDistEndRow <- 0
   maxDistTime <- 0
   maxDist <- 0
-  
+  maxDistDestination <- ""
   i <- 1
   j <- 2
   while(j < nrow(datSubset) + 1){
@@ -60,19 +62,18 @@ findMaxDistance <- function(dataFrame,name){
       j <- j + 1
       next;
     }
-    if(dist >= maxDist){
-       maxDist <- dist
-       maxDistStartRow <- i
-       maxDistEndRow <- j
+    if(dist > maxDist && datSubset$DESTINATION[i] == datSubset$DESTINATION[j]){
+       maxDist <- prettyNum(round(dist,2),big.mark=",",scientific=FALSE)
+       maxDistStartRow <- c(datSubset[i,1],datSubset[i,2])
+       maxDistEndRow <- c(datSubset[j,1],datSubset[j,2])
+       maxDistDestination <- datSubset[i,6]
     }
     i <- i + 1
     j <- j + 1
   }
-  allInfo <- list(maxDist,maxDistStartRow,maxDistEndRow)
+  allInfo <- list(maxDist,maxDistStartRow,maxDistEndRow,maxDistDestination)
   return(allInfo)
 }
-
-
 
 
 

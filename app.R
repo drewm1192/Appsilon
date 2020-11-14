@@ -24,12 +24,11 @@ library(leaflet)
 library(geosphere)
 source("helperFunctions.R")
 
-vesselData <- read.csv("sample.csv")
-# vesselData <- head(vesselData,200)
-#setwd("/Users/andrewmcmanus/Documents/Programming/JavaScript/Jonas JavaScript Course /6-budgety/starter/Appsilon")
-#vesselsFil <- distinct(vesselData,ship_type,.keep_all = T)
-#VESSEL_TYPES <- c(1,2,3,4)#vesselsFil$ship_type
-VESSEL_NAMES <- c(1,2,3,4)#distinct(vesselsFil, SHIPNAME,.keep_all=F)
+vesselData <- read.csv("ships.csv")
+  # sample <- head(vesselData,800000)#vesselData[sample(nrow(vesselData), 2000), ]
+  # write.csv(sample,"sample.csv")
+
+
 #####################
 #######THE UI########    
 #####################
@@ -48,15 +47,11 @@ ui <- semanticPage(
       )
     ),
     div(style = "width:100%; padding-top:10px; height: 600px; margin: 0px",
-      div(class = "ui raised segment", style = "margin-right: 50px; display: inline-block; vertical-align:top; width: 20%; border-radius: 10px; margin-top: 15px",
-              withSpinner(highchartOutput(outputId = "metrics",height = 480, width = "100%")),
-              sliderInput(inputId = "test",label="Test",min = 1, max = 100, value = 50)
-      ),
-      div(class = "ui raised segment", style = "margin-left: 50px; display: inline-block; vertical-align:top; width: 70%; border-radius: 10px;",
+      div(class = "ui raised segment", style = "margin-left: 50px; width: 80%; border-radius: 10px;",
               withSpinner(leaflet::leafletOutput(outputId = "vesselMap", height = 550, width = "100%"))
       )
     ),
-    div(style = "width:100%; padding-top:15px;",
+    div(style = "width:100%; padding-top:10px;",
         div(class = "ui raised segment", style = "margin-top: 12px; margin-left: 60px; margin-right: 60px; width: 400px; height: 220px; padding-top: 20px; display: inline-block; vertical-align:top;",
             div(class = "content",
                 uiOutput(outputId = "flagImg"),
@@ -78,6 +73,10 @@ ui <- semanticPage(
                 h1("Distance travelled: ",style = 'font-family: Arial Black; font-size: 25px'),
                 htmlOutput(outputId = "vesselDistance")
             )
+        ),
+        tags$style(type="text/css",
+                   ".shiny-output-error { visibility: hidden; }",
+                   ".shiny-output-error:before { visibility: hidden; }"
         )
     )
   )              
@@ -96,45 +95,44 @@ server <- function(input, output,session) {
   
   observe({
     x <- vesselData %>% filter(ship_type == input$vesselType)
-    print("---")
-    print(x)
     if (is.null(x))
       x <- character(0)
     
     updateSelectInput(session, "vesselName",
                       label = "Vessel Name",
-                      choices = x$SHIPNAME,
+                      choices = unique(x$SHIPNAME),
                       selected = head(x$SHIPNAME, 1)
     )
   })
   
   output$vesselMap <- renderLeaflet({
-   
+
     listOfInfo <- findMaxDistance(vesselData,input$vesselName)
-    print("HERE")
+    maxDistance <- listOfInfo[[1]]
     startingRecord <- listOfInfo[[2]]
     endingRecord <- listOfInfo[[3]]
+    destinationPort <- listOfInfo[[4]]
     
-    vesselData$X <- NULL
-    # point1 <- data.frame(vesselData[startingRecord,1],vesselData[startingRecord,2])
-    # point2 <- data.frame(vesselData[endingRecord,1],vesselData[endingRecord,2])
-    point1 <- data.frame(vesselData[1,1],vesselData[1,2])
-    point2 <- data.frame(vesselData[2,1],vesselData[2,2])
+    lat1 <- c(startingRecord[2])
+    lon1 <- c(startingRecord[1])
+    lat2 <- c(endingRecord[2])
+    lon2 <- c(endingRecord[1])
+    
+    point1 <- data.frame(lat1,lon1)
+    point2 <- data.frame(lat2,lon2)
+    
     baseLon <- mean(point1[1,1], point2[1,1])
     baseLat <- mean(point1[1,2], point2[1,2])
     
     gcIntermediate(point1, point2, 200, 
                    breakAtDateLine=FALSE, addStartEnd=TRUE, sp=TRUE) %>%
-      leaflet() %>% addTiles() %>% addPolylines() %>% 
-      setView(lng = baseLon, lat = baseLat, zoom = 3)
+      leaflet() %>% addTiles() %>% addPolylines(popup = paste0("<div style = 'text-align: center; font-size: 15px;'>","<strong>","Ship Info:","</strong>","</div>","<br>",
+                        "<strong>","Ship Name: ","</strong>",input$vesselName, "<br>",
+                        "<strong>","Distance: ","</strong>", maxDistance," M", "<br>",
+                        "<strong>","Destination: ","</strong>",destinationPort
+      )) %>% 
+      setView(lng = baseLon, lat = baseLat, zoom = 8)
     
-      # addCircles(data = l,
-      #            lng= ~Longitude, lat = ~Latitude, color = pal(l$Division),
-      #            radius = ~Years.of.Experience,
-      #            popup = paste("City:",l$City,"<br>",
-      #                          "Division:",l$Division,"<br>",
-      #                          "Years of Experience",l$Years.of.Experience)
-      # ) 
   })
   
   output$flagImg <- renderUI({
@@ -164,35 +162,11 @@ server <- function(input, output,session) {
   output$vesselDistance <- renderUI({
     
     listOfInfo <- findMaxDistance(vesselData,input$vesselName)
-    distance <- round(listOfInfo[[1]],2)
+    distance <- listOfInfo[[1]]
     
     
     HTML(paste0("<div style = 'font-family: Arial; font-size: 20px'>",distance,
                 "M","</div>"))
-  })
-  
-  output$metrics <- renderHighchart({
-    
-    test1 <- c(10,40,50,20,30)
-    test2 <- c("October","November","December","January","February")
-    dat <- data.frame(test1,test2)
-    
-    highchart() %>%
-      hc_add_series(data = dat, "line", color = "#4287f5", hcaes(x = test2, y = test1), 
-                    name = "Series Name") %>%
-      hc_plotOptions(
-        series = list(
-          showInLegend = T,
-          pointFormat = "{point.y}%"
-        ), column = list(colorByPoint = T)
-      ) %>%
-      hc_yAxis(title = list(text = "Percent"),
-               #lables = list(format("{value}%"),
-               max = 70) %>%
-      hc_xAxis(title = list(text = "Week"), categories = dat$test2) %>%
-      hc_title(text = "") %>%
-      hc_tooltip(pointFormat = "{point.y}%")
-    
   })
   
 }

@@ -1,4 +1,4 @@
-#Appsilon Recruitment Task Dashboard
+#Marine Track Dashboard
 library(shiny.semantic)
 library(shinyBS)
 library(shinyWidgets)
@@ -82,7 +82,7 @@ ui <- semanticPage(
               )
           ),
           div(style = "align:left;",
-              tags$img(src = "logos/logo-appsilon.png", height = "10%", width = "10%")
+              tags$img(src = "logos/logo-appsilon.png", height = "5%", width = "5%")
           ),
           tags$style(type="text/css",
                      ".shiny-output-error { visibility: hidden; }",
@@ -150,7 +150,7 @@ server <- function(input, output,session) {
                                                                  "<strong>","Distance Travelled: ","</strong>", maxDistance," M", "<br>",
                                                                  "<strong>","Destination Port: ","</strong>",destinationPort
         )) %>% 
-        setView(lng = baseLon, lat = baseLat, zoom = 10)
+        setView(lng = baseLon, lat = baseLat, zoom = 11)
     }
   })
   

@@ -116,7 +116,7 @@ server <- function(input, output,session) {
     startingRecord <- listOfInfo[[2]]
     endingRecord <- listOfInfo[[3]]
     destinationPort <- listOfInfo[[4]]
-    if(is.na(destinationPort) || destinationPort == "NaN"){
+    if(is.na(destinationPort)){
       destinationPort <- "Not Provided"
     }
     #Put long/lat in format required for visual
@@ -135,8 +135,8 @@ server <- function(input, output,session) {
                    breakAtDateLine=FALSE, addStartEnd=TRUE, sp=TRUE) %>%
       leaflet() %>% addTiles() %>% addPolylines(popup = paste0("<div style = 'text-align: center; font-size: 15px;'>","<strong>","Ship Info:","</strong>","</div>","<br>",
                         "<strong>","Ship Name: ","</strong>",input$vesselName, "<br>",
-                        "<strong>","Distance: ","</strong>", maxDistance," M", "<br>",
-                        "<strong>","Destination: ","</strong>",destinationPort
+                        "<strong>","Distance Travelled: ","</strong>", maxDistance," M", "<br>",
+                        "<strong>","Destination Port: ","</strong>",destinationPort
       )) %>% 
       setView(lng = baseLon, lat = baseLat, zoom = 9)
     

@@ -14,4 +14,5 @@ If you have any questions regarding interface design, code structure or function
 Thank you again for this opportunity, and I look forward to hearing from you.
 
 Very best,
+
 Andrew McManus

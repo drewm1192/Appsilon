@@ -33,16 +33,23 @@ vesselData <- read.csv("ships.csv")
 #####################
 ui <- semanticPage(
   htmlOutput(outputId = "back"),
-  div(align = "center",style = "height: 98%; width: 100%;background-color:rgba(255,255,255,0.9); border-radius: 15px;",
+  tags$style("body {
+                    -moz-transform: scale(0.8, 0.8); /* Moz-browsers */
+                    zoom: 0.9; /* Other non-webkit browsers */
+                    zoom: 90%; /* Webkit browsers */
+                    }"),
+  div(align = "center",style = "height: 100%; width: 100%;background-color:rgba(255,255,255,0.9); border-radius: 15px;",
       div(align = "left", style = "background-color: #d9e5ff ; margin-bottom: 10px; border-radius: 10px 10px 0px 0px",
-          tags$img(src = "logos/logo-appsilon.png", height = "10%", width = "10%")
+          div(style = "text-align: left; padding-left: 15px; width: 20%; padding-top: 10px;",
+            h2("Marine Track", style = "color: #72a2b8;font-family: Arial; font-weight: 10; font-size: 34px")
+          )
       ),
       div(align = "center", style = "padding-top: 10px; padding-bottom: 0px;",
           div(style = "display: inline-block;vertical-align:top; width: 350px; padding-right: 100px;",
-              vesselTypeUI("vesselType")
+              vesselTypeUI("vesselType",vesselData)
           ),
           div(style = "display: inline-block;vertical-align:top; width: 350px; padding-left: 100px;",
-              vesselNameUI("vesselName")
+              vesselNameUI("vesselName",vesselData)
           )
       ),
       div(style = "width:100%; padding-top:10px; height: 600px; margin: 0px",
@@ -73,6 +80,9 @@ ui <- semanticPage(
                   h1("Distance Travelled: ",style = 'font-family: Arial Black; font-size: 25px'),
                   htmlOutput(outputId = "vesselDistance")
               )
+          ),
+          div(style = "align:left;",
+              tags$img(src = "logos/logo-appsilon.png", height = "10%", width = "10%")
           ),
           tags$style(type="text/css", #prevent error messages from showing in UI
                      ".shiny-output-error { visibility: hidden; }",

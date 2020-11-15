@@ -27,6 +27,8 @@ library(geosphere)
 source("helperFunctions.R")
 source("uiElements.R")
 vesselData <- read.csv("ships.csv")
+vesselData$SHIPNAME <- as.character(vesselData$SHIPNAME)
+vesselData$ship_type <- as.character(vesselData$ship_type)
 
 #####################
 #######THE UI########    
@@ -112,8 +114,7 @@ server <- function(input, output,session) {
     
     updateSelectInput(session, "vesselName",
                       label = "Vessel Name",
-                      choices = unique(x$SHIPNAME),
-                      selected = head(x$SHIPNAME, 1)
+                      choices = sort(unique(x$SHIPNAME))
     )
   })
   
@@ -138,7 +139,7 @@ server <- function(input, output,session) {
       lon2 <- c(endingRecord[1])
       point1 <- data.frame(lat1,lon1)
       point2 <- data.frame(lat2,lon2)
-      
+      print(lat1)
       #Generate a setView location based on the starting and ending points of journey
       baseLon <- mean(point1[1,1], point2[1,1])
       baseLat <- mean(point1[1,2], point2[1,2])

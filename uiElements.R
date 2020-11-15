@@ -9,7 +9,7 @@
 #'
 #' @examples
 vesselTypeUI <- function(vesselType,vesselData){
-  selectInput(inputId = vesselType, label = "Vessel Type", choices = unique(vesselData$ship_type), selected = "Cargo")
+  selectInput(inputId = vesselType, label = "Vessel Type", choices = sort(unique(vesselData$ship_type)))
 }
 
 #' Vessel Name Input UI Element
@@ -21,6 +21,6 @@ vesselTypeUI <- function(vesselType,vesselData){
 #'
 #' @examples
 vesselNameUI <- function(vesselName,vesselData){
-  selectInput(inputId = vesselName, label = "Vessel Name", choices = unique(vesselData$SHIPNAME))
+  selectInput(inputId = vesselName, label = "Vessel Name", choices = sort(unique(vesselData$SHIPNAME)))
 }
 

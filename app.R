@@ -84,7 +84,7 @@ ui <- semanticPage(
           div(style = "align:left;",
               tags$img(src = "logos/logo-appsilon.png", height = "10%", width = "10%")
           ),
-          tags$style(type="text/css", 
+          tags$style(type="text/css",
                      ".shiny-output-error { visibility: hidden; }",
                      ".shiny-output-error:before { visibility: hidden; }"
           )

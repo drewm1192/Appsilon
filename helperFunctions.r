@@ -53,28 +53,25 @@ findMaxDistance <- function(dataFrame,name){
   while(j < nrow(datSubset) + 1){
     
     dist <- distanceCalculator(datSubset[i,1],datSubset[i,2],datSubset[j,1],datSubset[j,2])
-    if(datSubset$is_parked[i] != 1 ){
-      print(dist)
-      
-    }
-
+    
     if(is.na(dist) || is.nan(dist)){
       i <- i + 1
       j <- j + 1
       next;
     }
-    if(datSubset$is_parked[i] == 1 || 
-       is.na(datSubset$DESTINATION[i]) || 
-       is.na(datSubset$DESTINATION[j])){
+    else if(is.na(datSubset$is_parked[i]) || 
+       datSubset$is_parked[i] == 1 || 
+       is.na(datSubset$port[i]) || 
+       is.na(datSubset$port[j])){
       i <- i + 1
       j <- j + 1
       next;
     }
-    if(dist > maxDist && datSubset$DESTINATION[i] == datSubset$DESTINATION[j]){
+    else if(dist > maxDist && datSubset$port[i] == datSubset$port[j]){
       maxDist <- prettyNum(round(dist,2),big.mark=",",scientific=FALSE)
       maxDistStartRow <- c(datSubset[i,1],datSubset[i,2])
       maxDistEndRow <- c(datSubset[j,1],datSubset[j,2])
-      maxDistDestination <- datSubset[i,6]
+      maxDistDestination <- datSubset[i,19]
     }
     i <- i + 1
     j <- j + 1

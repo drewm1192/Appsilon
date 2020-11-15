@@ -34,51 +34,51 @@ vesselData <- read.csv("ships.csv")
 ui <- semanticPage(
   htmlOutput(outputId = "back"),
   div(align = "center",style = "height: 98%; width: 100%;background-color:rgba(255,255,255,0.9); border-radius: 15px;",
-    div(align = "left", style = "background-color: #d9e5ff ; margin-bottom: 10px; border-radius: 10px 10px 0px 0px",
-        tags$img(src = "logos/logo-appsilon.png", height = "10%", width = "10%")
-    ),
-    div(align = "center", style = "padding-top: 10px; padding-bottom: 0px;",
-      div(style = "display: inline-block;vertical-align:top; width: 350px; padding-right: 100px;",
-          selectInput(inputId = "vesselType", label = "Vessel Type", choices = unique(vesselData$ship_type), selected = "Tug")
+      div(align = "left", style = "background-color: #d9e5ff ; margin-bottom: 10px; border-radius: 10px 10px 0px 0px",
+          tags$img(src = "logos/logo-appsilon.png", height = "10%", width = "10%")
       ),
-      div(style = "display: inline-block;vertical-align:top; width: 350px; padding-left: 100px;",
-          selectInput(inputId = "vesselName", label = "Vessel Name", choices = unique(vesselData$SHIPNAME))
-      )
-    ),
-    div(style = "width:100%; padding-top:10px; height: 600px; margin: 0px",
-      div(class = "ui raised segment", style = "margin-left: 50px; width: 80%; border-radius: 10px;",
+      div(align = "center", style = "padding-top: 10px; padding-bottom: 0px;",
+          div(style = "display: inline-block;vertical-align:top; width: 350px; padding-right: 100px;",
+              selectInput(inputId = "vesselType", label = "Vessel Type", choices = unique(vesselData$ship_type), selected = "Tug")
+          ),
+          div(style = "display: inline-block;vertical-align:top; width: 350px; padding-left: 100px;",
+              selectInput(inputId = "vesselName", label = "Vessel Name", choices = unique(vesselData$SHIPNAME))
+          )
+      ),
+      div(style = "width:100%; padding-top:10px; height: 600px; margin: 0px",
+          div(class = "ui raised segment", style = "margin-left: 50px; width: 80%; border-radius: 10px;",
               withSpinner(leaflet::leafletOutput(outputId = "vesselMap", height = 550, width = "100%")),
               htmlOutput(outputId = "wasParked")
+          )
+      ),
+      div(style = "width:100%; padding-top:10px;padding-left:50px",
+          div(class = "ui raised segment", style = "margin-top: 12px; margin-left: 60px; margin-right: 60px; width: 400px; height: 220px; padding-top: 20px; display: inline-block; vertical-align:top;",
+              div(class = "content",
+                  uiOutput(outputId = "flagImg"),
+                  h1("Vessel Name: ",style = 'font-family: Arial Black; font-size: 25px; padding-top: -30'),
+                  htmlOutput(outputId = "selectedVessel"),
+                  htmlOutput(outputId = "selectedVesselID")
+              )
+          ),
+          div(class = "ui raised segment", style = "margin-left: 60px; margin-right: 60px; width: 400px; height: 220px; display: inline-block; vertical-align:top;",
+              div(class = "content",
+                  tags$img(src = "icons/Ship-icon.png", height = "25%",width = "25%"),
+                  h1("Vessel Type: ",style = 'font-family: Arial Black; font-size: 25px'),
+                  htmlOutput(outputId = "selectedVesselType")
+              )
+          ),
+          div(class = "ui raised segment", style = "margin-left: 60px; margin-right: 60px; width: 400px; height: 220px; display: inline-block; vertical-align:top;",
+              div(class = "content",
+                  tags$img(src = "icons/distance.png", height = "25%",width = "25%"),
+                  h1("Distance Travelled: ",style = 'font-family: Arial Black; font-size: 25px'),
+                  htmlOutput(outputId = "vesselDistance")
+              )
+          ),
+          tags$style(type="text/css", #prevent error messages from showing in UI
+                     ".shiny-output-error { visibility: hidden; }",
+                     ".shiny-output-error:before { visibility: hidden; }"
+          )
       )
-    ),
-    div(style = "width:100%; padding-top:10px;",
-        div(class = "ui raised segment", style = "margin-top: 12px; margin-left: 60px; margin-right: 60px; width: 400px; height: 220px; padding-top: 20px; display: inline-block; vertical-align:top;",
-            div(class = "content",
-                uiOutput(outputId = "flagImg"),
-                h1("Vessel Name: ",style = 'font-family: Arial Black; font-size: 25px; padding-top: -30'),
-                htmlOutput(outputId = "selectedVessel"),
-                htmlOutput(outputId = "selectedVesselID")
-            )
-        ),
-        div(class = "ui raised segment", style = "margin-left: 60px; margin-right: 60px; width: 400px; height: 220px; display: inline-block; vertical-align:top;",
-            div(class = "content",
-                tags$img(src = "icons/Ship-icon.png", height = "25%",width = "25%"),
-                h1("Vessel Type: ",style = 'font-family: Arial Black; font-size: 25px'),
-                htmlOutput(outputId = "selectedVesselType")
-            )
-        ),
-        div(class = "ui raised segment", style = "margin-left: 60px; margin-right: 60px; width: 400px; height: 220px; display: inline-block; vertical-align:top;",
-            div(class = "content",
-                tags$img(src = "icons/distance.png", height = "25%",width = "25%"),
-                h1("Distance Travelled: ",style = 'font-family: Arial Black; font-size: 25px'),
-                htmlOutput(outputId = "vesselDistance")
-            )
-        ),
-        tags$style(type="text/css", #prevent error messages from showing in UI
-                   ".shiny-output-error { visibility: hidden; }",
-                   ".shiny-output-error:before { visibility: hidden; }"
-        )
-    )
   )              
 )
 
@@ -134,9 +134,9 @@ server <- function(input, output,session) {
     gcIntermediate(point1, point2, 200, 
                    breakAtDateLine=FALSE, addStartEnd=TRUE, sp=TRUE) %>%
       leaflet() %>% addTiles() %>% addPolylines(popup = paste0("<div style = 'text-align: center; font-size: 15px;'>","<strong>","Ship Info:","</strong>","</div>","<br>",
-                        "<strong>","Ship Name: ","</strong>",input$vesselName, "<br>",
-                        "<strong>","Distance Travelled: ","</strong>", maxDistance," M", "<br>",
-                        "<strong>","Destination Port: ","</strong>",destinationPort
+                                                               "<strong>","Ship Name: ","</strong>",input$vesselName, "<br>",
+                                                               "<strong>","Distance Travelled: ","</strong>", maxDistance," M", "<br>",
+                                                               "<strong>","Destination Port: ","</strong>",destinationPort
       )) %>% 
       setView(lng = baseLon, lat = baseLat, zoom = 9)
     
@@ -197,5 +197,4 @@ server <- function(input, output,session) {
 
 
 shinyApp(ui, server)
-
 

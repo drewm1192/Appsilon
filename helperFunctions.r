@@ -13,6 +13,7 @@ library(pracma)
 #'
 #' @examples
 distanceCalculator <- function(lat1, long1, lat2, long2){
+  
   #Set earth radius constant
   EARTH_RADIUS <- 6371.01
   #Convert degrees to radians
@@ -21,10 +22,11 @@ distanceCalculator <- function(lat1, long1, lat2, long2){
   latitude2 <- deg2rad(lat2)
   longitude2 <- deg2rad(long2)
   #Calculate distance using Great Circle Distance Equation * 1000 for meters
-  distance <- EARTH_RADIUS * acos(sin(latitude1) * sin(latitude2) + 
-                                    cos(latitude1) * cos(latitude2) * 
-                                    cos(longitude1 - longitude2)) * 1000
+  distance <-  sin(latitude1) * sin(latitude2) + 
+    cos(latitude1) * cos(latitude2) * 
+    cos(longitude1 - longitude2) 
   
+  distance <- EARTH_RADIUS  * acos(pmin(pmax(distance,-1.0), 1.0)) * 1000
   return(distance)
 }
 
@@ -51,13 +53,17 @@ findMaxDistance <- function(dataFrame,name){
   while(j < nrow(datSubset) + 1){
     
     dist <- distanceCalculator(datSubset[i,1],datSubset[i,2],datSubset[j,1],datSubset[j,2])
-    
+    if(datSubset$is_parked[i] != 1 ){
+      print(dist)
+      
+    }
+
     if(is.na(dist) || is.nan(dist)){
       i <- i + 1
       j <- j + 1
       next;
     }
-    if(datSubset$is_parked == 1 || 
+    if(datSubset$is_parked[i] == 1 || 
        is.na(datSubset$DESTINATION[i]) || 
        is.na(datSubset$DESTINATION[j])){
       i <- i + 1
@@ -65,10 +71,10 @@ findMaxDistance <- function(dataFrame,name){
       next;
     }
     if(dist > maxDist && datSubset$DESTINATION[i] == datSubset$DESTINATION[j]){
-       maxDist <- prettyNum(round(dist,2),big.mark=",",scientific=FALSE)
-       maxDistStartRow <- c(datSubset[i,1],datSubset[i,2])
-       maxDistEndRow <- c(datSubset[j,1],datSubset[j,2])
-       maxDistDestination <- datSubset[i,6]
+      maxDist <- prettyNum(round(dist,2),big.mark=",",scientific=FALSE)
+      maxDistStartRow <- c(datSubset[i,1],datSubset[i,2])
+      maxDistEndRow <- c(datSubset[j,1],datSubset[j,2])
+      maxDistDestination <- datSubset[i,6]
     }
     i <- i + 1
     j <- j + 1
@@ -76,6 +82,3 @@ findMaxDistance <- function(dataFrame,name){
   allInfo <- list(maxDist,maxDistStartRow,maxDistEndRow,maxDistDestination)
   return(allInfo)
 }
-
-
-

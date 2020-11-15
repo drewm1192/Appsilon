@@ -9,6 +9,8 @@ library(highcharter)
 library(dplyr)
 library(shinyjs)
 library(plotly)
+library(shinycssloaders)
+library(pracma)
 library(dplyr)
 library(shinycustomloader)
 library(formattable)
@@ -16,7 +18,7 @@ library(tidyr)
 library(waiter)
 library(corazon)
 library(magrittr)
-library(highlighter) # devtools::install_github("Appsilon/highlighter")
+library(highlighter) 
 library(formatR)
 library(httr)
 library(rjson)
@@ -25,9 +27,6 @@ library(geosphere)
 source("helperFunctions.R")
 
 vesselData <- read.csv("ships.csv")
-  # sample <- head(vesselData,800000)#vesselData[sample(nrow(vesselData), 2000), ]
-  # write.csv(sample,"sample.csv")
-
 
 #####################
 #######THE UI########    
@@ -48,7 +47,8 @@ ui <- semanticPage(
     ),
     div(style = "width:100%; padding-top:10px; height: 600px; margin: 0px",
       div(class = "ui raised segment", style = "margin-left: 50px; width: 80%; border-radius: 10px;",
-              withSpinner(leaflet::leafletOutput(outputId = "vesselMap", height = 550, width = "100%"))
+              withSpinner(leaflet::leafletOutput(outputId = "vesselMap", height = 550, width = "100%")),
+              htmlOutput(outputId = "wasParked")
       )
     ),
     div(style = "width:100%; padding-top:10px;",
@@ -70,11 +70,11 @@ ui <- semanticPage(
         div(class = "ui raised segment", style = "margin-left: 60px; margin-right: 60px; width: 400px; height: 220px; display: inline-block; vertical-align:top;",
             div(class = "content",
                 tags$img(src = "icons/distance.png", height = "25%",width = "25%"),
-                h1("Distance travelled: ",style = 'font-family: Arial Black; font-size: 25px'),
+                h1("Distance Travelled: ",style = 'font-family: Arial Black; font-size: 25px'),
                 htmlOutput(outputId = "vesselDistance")
             )
         ),
-        tags$style(type="text/css",
+        tags$style(type="text/css", #prevent error messages from showing in UI
                    ".shiny-output-error { visibility: hidden; }",
                    ".shiny-output-error:before { visibility: hidden; }"
         )
@@ -83,16 +83,18 @@ ui <- semanticPage(
 )
 
 
-
 ####################
 #######SERVER#######
 ####################
 server <- function(input, output,session) {  
   
+  #Set a dark blue gradient background
   output$back <- renderUI({
     setBackgroundImage(src ="cool-background.png")
   })
   
+  #Handle updating the vessel name dropdown so it only shows 
+  #names of vessels of the selected type
   observe({
     x <- vesselData %>% filter(ship_type == input$vesselType)
     if (is.null(x))
@@ -105,25 +107,30 @@ server <- function(input, output,session) {
     )
   })
   
+  #Create the map
   output$vesselMap <- renderLeaflet({
-
+    #Get info on the max distance observations
     listOfInfo <- findMaxDistance(vesselData,input$vesselName)
+    #Save out the values from findMaxDistance to readable variable names
     maxDistance <- listOfInfo[[1]]
     startingRecord <- listOfInfo[[2]]
     endingRecord <- listOfInfo[[3]]
     destinationPort <- listOfInfo[[4]]
-    
+    if(is.na(destinationPort) || destinationPort == "NaN"){
+      destinationPort <- "Not Provided"
+    }
+    #Put long/lat in format required for visual
     lat1 <- c(startingRecord[2])
     lon1 <- c(startingRecord[1])
     lat2 <- c(endingRecord[2])
     lon2 <- c(endingRecord[1])
-    
     point1 <- data.frame(lat1,lon1)
     point2 <- data.frame(lat2,lon2)
     
+    #Generate a setView location based on the starting and ending points of journey
     baseLon <- mean(point1[1,1], point2[1,1])
     baseLat <- mean(point1[1,2], point2[1,2])
-    
+    #Create the visual with a distane line
     gcIntermediate(point1, point2, 200, 
                    breakAtDateLine=FALSE, addStartEnd=TRUE, sp=TRUE) %>%
       leaflet() %>% addTiles() %>% addPolylines(popup = paste0("<div style = 'text-align: center; font-size: 15px;'>","<strong>","Ship Info:","</strong>","</div>","<br>",
@@ -135,17 +142,20 @@ server <- function(input, output,session) {
     
   })
   
+  #Renders an image of the ship's flag.
   output$flagImg <- renderUI({
     flagData <- vesselData %>% filter(SHIPNAME == input$vesselName) 
     flag <- flagData$FLAG[1]
     tags$img(src = paste0("country_flags/",flag,".jpg"), height = "30%", width = "30%")
   })
   
+  #Generates the selected vessel's name in the bottom left box
   output$selectedVessel <- renderUI({
     text <- HTML(paste0("<div style = 'font-family: Arial; font-size: 20px;'>",
                         input$vesselName,"</div>"))
   })
   
+  #Generates the vessel ID in the bottom left box
   output$selectedVesselID <- renderUI({
     idData <- vesselData %>% filter(SHIPNAME == input$vesselName) 
     id <- idData$SHIP_ID[1]
@@ -153,6 +163,7 @@ server <- function(input, output,session) {
                         id,"</div>"))
   })
   
+  #Generates the vessel type text in the bottom center box
   output$selectedVesselType <- renderUI({
     type <- toupper(input$vesselType)
     text <- HTML(paste0("<div style = 'font-family: Arial; font-size: 20px'>",
@@ -160,13 +171,25 @@ server <- function(input, output,session) {
   })
   
   output$vesselDistance <- renderUI({
-    
     listOfInfo <- findMaxDistance(vesselData,input$vesselName)
     distance <- listOfInfo[[1]]
-    
-    
     HTML(paste0("<div style = 'font-family: Arial; font-size: 20px'>",distance,
                 "M","</div>"))
+  })
+  
+  #Displays message if there are no records for the vessel where it was not parked
+  #i.e. is_parked is never 0.
+  output$wasParked <- renderUI({
+    isParkedData <- vesselData %>% filter(SHIPNAME == input$vesselName) %>% filter(is_parked == 0)
+    activeRecords <- nrow(isParkedData)
+    if(activeRecords == 0){
+      text <- HTML(paste0("<div style = 'font-family: Arial; font-size: 20px;'>",
+                          "No active records for this vessel. This vessel was parked for the during of the observation period.","</div>"))
+    }
+    else{
+      text <- ""
+    }
+    text
   })
   
 }

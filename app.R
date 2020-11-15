@@ -25,7 +25,7 @@ library(rjson)
 library(leaflet)
 library(geosphere)
 source("helperFunctions.R")
-
+source("uiElements.R")
 vesselData <- read.csv("ships.csv")
 
 #####################
@@ -39,10 +39,10 @@ ui <- semanticPage(
       ),
       div(align = "center", style = "padding-top: 10px; padding-bottom: 0px;",
           div(style = "display: inline-block;vertical-align:top; width: 350px; padding-right: 100px;",
-              selectInput(inputId = "vesselType", label = "Vessel Type", choices = unique(vesselData$ship_type), selected = "Tug")
+              vesselTypeUI("vesselType")
           ),
           div(style = "display: inline-block;vertical-align:top; width: 350px; padding-left: 100px;",
-              selectInput(inputId = "vesselName", label = "Vessel Name", choices = unique(vesselData$SHIPNAME))
+              vesselNameUI("vesselName")
           )
       ),
       div(style = "width:100%; padding-top:10px; height: 600px; margin: 0px",
@@ -121,26 +121,26 @@ server <- function(input, output,session) {
     }
     #Only display map if distance is greater than 0
     if(maxDistance != 0){
-        #Put long/lat in format required for visual
-        lat1 <- c(startingRecord[2])
-        lon1 <- c(startingRecord[1])
-        lat2 <- c(endingRecord[2])
-        lon2 <- c(endingRecord[1])
-        point1 <- data.frame(lat1,lon1)
-        point2 <- data.frame(lat2,lon2)
-        
-        #Generate a setView location based on the starting and ending points of journey
-        baseLon <- mean(point1[1,1], point2[1,1])
-        baseLat <- mean(point1[1,2], point2[1,2])
-        #Create the visual with a distane line
-        gcIntermediate(point1, point2, 200, 
-                       breakAtDateLine=FALSE, addStartEnd=TRUE, sp=TRUE) %>%
-          leaflet() %>% addTiles() %>% addPolylines(popup = paste0("<div style = 'text-align: center; font-size: 15px;'>","<strong>","Ship Info:","</strong>","</div>","<br>",
-                                                                   "<strong>","Ship Name: ","</strong>",input$vesselName, "<br>",
-                                                                   "<strong>","Distance Travelled: ","</strong>", maxDistance," M", "<br>",
-                                                                   "<strong>","Destination Port: ","</strong>",destinationPort
-          )) %>% 
-          setView(lng = baseLon, lat = baseLat, zoom = 10)
+      #Put long/lat in format required for visual
+      lat1 <- c(startingRecord[2])
+      lon1 <- c(startingRecord[1])
+      lat2 <- c(endingRecord[2])
+      lon2 <- c(endingRecord[1])
+      point1 <- data.frame(lat1,lon1)
+      point2 <- data.frame(lat2,lon2)
+      
+      #Generate a setView location based on the starting and ending points of journey
+      baseLon <- mean(point1[1,1], point2[1,1])
+      baseLat <- mean(point1[1,2], point2[1,2])
+      #Create the visual with a distane line
+      gcIntermediate(point1, point2, 200, 
+                     breakAtDateLine=FALSE, addStartEnd=TRUE, sp=TRUE) %>%
+        leaflet() %>% addTiles() %>% addPolylines(popup = paste0("<div style = 'text-align: center; font-size: 15px;'>","<strong>","Ship Info:","</strong>","</div>","<br>",
+                                                                 "<strong>","Ship Name: ","</strong>",input$vesselName, "<br>",
+                                                                 "<strong>","Distance Travelled: ","</strong>", maxDistance," M", "<br>",
+                                                                 "<strong>","Destination Port: ","</strong>",destinationPort
+        )) %>% 
+        setView(lng = baseLon, lat = baseLat, zoom = 10)
     }
   })
   

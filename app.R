@@ -196,7 +196,7 @@ server <- function(input, output,session) {
     activeRecords <- nrow(isParkedData)
     if(activeRecords == 0){
       text <- HTML(paste0("<div style = 'font-family: Arial; font-size: 20px;'>",
-                          "No active records for this vessel. This vessel was parked for the during of the observation period.","</div>"))
+                          "No active records for this vessel. This vessel was parked for the duration of the observation period.","</div>"))
     }
     else{
       text <- ""

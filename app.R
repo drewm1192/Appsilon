@@ -139,7 +139,6 @@ server <- function(input, output,session) {
       lon2 <- c(endingRecord[1])
       point1 <- data.frame(lat1,lon1)
       point2 <- data.frame(lat2,lon2)
-      print(lat1)
       #Generate a setView location based on the starting and ending points of journey
       baseLon <- mean(point1[1,1], point2[1,1])
       baseLat <- mean(point1[1,2], point2[1,2])
@@ -151,7 +150,7 @@ server <- function(input, output,session) {
                                                                  "<strong>","Distance Travelled: ","</strong>", maxDistance," M", "<br>",
                                                                  "<strong>","Destination Port: ","</strong>",destinationPort
         )) %>% 
-        setView(lng = baseLon, lat = baseLat, zoom = 11)
+        setView(lng = baseLon, lat = baseLat, zoom = 10)
     }
   })
   
